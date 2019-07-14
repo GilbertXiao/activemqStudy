@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:amq="http://activemq.apache.org/schema/core"
+       xmlns:jms="http://www.springframework.org/schema/jms"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd http://activemq.apache.org/schema/core http://activemq.apache.org/schema/core/activemq-core.xsd http://www.springframework.org/schema/jms https://www.springframework.org/schema/jms/spring-jms.xsd">
+    
+    <context:component-scan base-package="com.gilxyj" use-default-filters="true">
+        <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+
+    <!--1.配置连接工厂-->
+    <amq:connectionFactory brokerURL="tcp://192.168.133.128:61616" userName="admin" password="admin"
+                           id="connectFactory"/>
+    <!--2.配置缓存工厂-->
+    <bean class="org.springframework.jms.connection.CachingConnectionFactory" id="cachingConnectionFactory" >
+        <property name="targetConnectionFactory" ref="connectFactory"></property>
+        <property name="sessionCacheSize" value="100"/>
+     </bean>
+
+    <!--3.配置JmsTemplate-->
+    <bean class="org.springframework.jms.core.JmsTemplate" id="jmsTemplate">
+        <property name="connectionFactory" ref="cachingConnectionFactory"/>
+     </bean>
+
+    <!--4.配置消息生产者和消息监听器-->
+    <!--5.配置消息消费者-->
+   <jms:listener-container acknowledge="auto" connection-factory="cachingConnectionFactory" destination-type="queue"  container-type="default" >
+       <jms:listener destination="spring.jms.hello" ref="myMessageListener"/>
+   </jms:listener-container>
+
+
+</beans>
